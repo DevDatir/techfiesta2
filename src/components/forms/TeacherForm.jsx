@@ -1,4 +1,3 @@
-// src/components/forms/TeacherForm.jsx
 import React, { useState } from 'react';
 
 const TeacherForm = () => {
@@ -7,6 +6,7 @@ const TeacherForm = () => {
     email: '',
     department: '',
     subjects: [],
+    lunchBreak: '12:00 PM',
     availability: {
       monday: [],
       tuesday: [],
@@ -16,8 +16,7 @@ const TeacherForm = () => {
     },
     preferences: {
       maxClassesPerDay: 4,
-      preferredTimeSlots: [],
-      breakTime: '12:00 PM'
+      preferredTimeSlots: []
     }
   });
 
@@ -74,15 +73,33 @@ const TeacherForm = () => {
     }));
   };
 
+  const handleLunchBreakChange = (e) => {
+    const { value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      lunchBreak: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Create a new object with the correct structure for the API
+      const teacherData = {
+        name: formData.name,
+        email: formData.email,
+        department: formData.department,
+        subjects: formData.subjects,
+        lunchBreak: formData.lunchBreak,
+        availability: formData.availability
+      };
+
       const response = await fetch('http://localhost:5001/api/teachers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(teacherData)
       });
   
       const data = await response.json();
@@ -104,6 +121,7 @@ const TeacherForm = () => {
         email: '',
         department: '',
         subjects: [],
+        lunchBreak: '12:00 PM',
         availability: {
           monday: [],
           tuesday: [],
@@ -113,8 +131,7 @@ const TeacherForm = () => {
         },
         preferences: {
           maxClassesPerDay: 4,
-          preferredTimeSlots: [],
-          breakTime: '12:00 PM'
+          preferredTimeSlots: []
         }
       });
   
@@ -181,8 +198,25 @@ const TeacherForm = () => {
                   <option key={subject} value={subject}>{subject}</option>
                 ))}
               </select>
+              <small className="text-gray-500">Hold Ctrl/Cmd to select multiple subjects</small>
             </div>
           )}
+        </div>
+
+        {/* Lunch Break */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Lunch Break</label>
+          <select
+            name="lunchBreak"
+            value={formData.lunchBreak}
+            onChange={handleLunchBreakChange}
+            className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+            required
+          >
+            {timeSlots.map(time => (
+              <option key={time} value={time}>{time}</option>
+            ))}
+          </select>
         </div>
 
         {/* Preferences */}
@@ -201,21 +235,6 @@ const TeacherForm = () => {
               max="8"
               className="mt-1 block w-full rounded-md border border-gray-300 p-2"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Break Time
-            </label>
-            <select
-              name="breakTime"
-              value={formData.preferences.breakTime}
-              onChange={handlePreferenceChange}
-              className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-            >
-              {timeSlots.map(time => (
-                <option key={time} value={time}>{time}</option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -240,6 +259,7 @@ const TeacherForm = () => {
                       checked={formData.availability[day].includes(time)}
                       onChange={() => handleAvailabilityChange(day, time)}
                       className="h-4 w-4"
+                      disabled={time === formData.lunchBreak}
                     />
                   </div>
                 ))}
